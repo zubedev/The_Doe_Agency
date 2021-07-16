@@ -1,0 +1,22 @@
+[tool.poetry]
+name = "the_doe_agency"
+version = "0.1.0"
+description = "An agency by John and Jane Doe providing proxy lists to the unknowns"
+authors = ["Md Zubair Beg <ziibii88@gmail.com>"]
+license = "MIT"
+
+[tool.poetry.dependencies]
+python = "~3.9"
+django = "^3.2"
+djangorestframework = "^3.12"
+Markdown = "^3.3"
+django-filter = "^2.4"
+
+[tool.poetry.dev-dependencies]
+flake8 = "^3.9"
+black = "^21.6b0"
+pre-commit = "^2.13"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
