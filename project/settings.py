@@ -11,7 +11,7 @@ https://docs.djangoproject.com/en/3.2/ref/settings/
 """
 from pathlib import Path
 
-from decouple import config
+from decouple import config, Csv
 import sentry_sdk
 from sentry_sdk.integrations.django import DjangoIntegration
 
@@ -47,7 +47,10 @@ SECRET_KEY = config("SECRET_KEY")
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = config("DEBUG", default=False, cast=bool)
 
-ALLOWED_HOSTS = config("ALLOWED_HOSTS", default=[], cast=list)
+ALLOWED_HOSTS = config("ALLOWED_HOSTS", default=[], cast=Csv())
+
+# https://django-debug-toolbar.readthedocs.io/en/latest/installation.html#configuring-internal-ips
+INTERNAL_IPS = config("INTERNAL_IPS", default=[], cast=Csv())
 
 
 # Application definition ---------------------------------------------------- #
@@ -66,7 +69,11 @@ INSTALLED_APPS = [
     # ...
 ]
 
+if ENVIRON == "dev":
+    INSTALLED_APPS.append("debug_toolbar")
+
 MIDDLEWARE = [
+    "debug_toolbar.middleware.DebugToolbarMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -153,6 +160,15 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/3.2/howto/static-files/
 
 STATIC_URL = "/static/"
+STATIC_ROOT = (
+    BASE_DIR / "static"
+)  # production, don't forget to run collectstatic
+STATICFILES_DIRS = [
+    BASE_DIR / "staticfiles",
+]  # development environment
+
+MEDIA_URL = "/media/"
+MEDIA_ROOT = BASE_DIR / "media"
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field

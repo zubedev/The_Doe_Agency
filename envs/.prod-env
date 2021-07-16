@@ -4,7 +4,7 @@ ENVIRON=prod
 # run the following function in django shell to generate a secret key
 # django.core.management.utils.get_random_secret_key()
 SECRET_KEY=
-ALLOWED_HOSTS=[]
+ALLOWED_HOSTS=
 DEBUG=False
 
 DB_ENGINE=django.db.backends.postgresql
