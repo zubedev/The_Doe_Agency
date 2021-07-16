@@ -9,12 +9,31 @@ https://docs.djangoproject.com/en/3.2/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/3.2/ref/settings/
 """
-from decouple import config
 from pathlib import Path
+
+from decouple import config
+import sentry_sdk
+from sentry_sdk.integrations.django import DjangoIntegration
 
 from .logging import CONFIG as LOG_CONFIG
 
+ENVIRON = config('ENVIRON', default='prod')
+
+sentry_sdk.init(
+    dsn=f"https://ad9a9f987fa949a899c3b890ef4cd112"
+        f"@o354850.ingest.sentry.io/5868398",
+    integrations=[DjangoIntegration()],
+    environment=ENVIRON,
+    traces_sample_rate=1.0,
+    send_default_pii=True,
+    release="tda@0.1.0",  # change in poetry as well
+)
+
 LOGGING = LOG_CONFIG
+
+PROJECT_NAME = 'The Doe Agency'
+PROJECT_SLUG = 'the-doe-agency'
+PROJECT_CODE = 'TDA'
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -97,18 +116,14 @@ DATABASES = {
 # https://docs.djangoproject.com/en/3.2/ref/settings/#auth-password-validators
 
 AUTH_PASSWORD_VALIDATORS = [
-    {
-        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
-    },
+    {'NAME': f'django.contrib.auth.password_validation'
+             f'.UserAttributeSimilarityValidator'},
+    {'NAME': f'django.contrib.auth.password_validation'
+             f'.MinimumLengthValidator'},
+    {'NAME': f'django.contrib.auth.password_validation'
+             f'.CommonPasswordValidator'},
+    {'NAME': f'django.contrib.auth.password_validation'
+             f'.NumericPasswordValidator'},
 ]
 
 
