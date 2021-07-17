@@ -78,7 +78,7 @@ INSTALLED_APPS = [
     # 'health_check.contrib.rabbitmq',
     # 'health_check.contrib.redis',
     # project apps
-    # ...
+    "core",
 ]
 
 if ENVIRON == "dev":
@@ -112,6 +112,8 @@ TEMPLATES = [
         },
     },
 ]
+
+AUTH_USER_MODEL = "core.User"
 
 WSGI_APPLICATION = "project.wsgi.application"
 
