@@ -20,7 +20,10 @@ from django.urls import path, include
 from project import settings
 
 urlpatterns = [
+    # admin panel
     path("admin/", admin.site.urls),
+    # health checks
+    path("health/", include("health_check.urls")),
 ]
 
 # development environment urls ------------------------------------------------
@@ -36,6 +39,6 @@ if settings.ENVIRON == "dev":
     ] + urlpatterns
 
 # admin site customizations ---------------------------------------------------
-admin.sites.AdminSite.site_header = "TPL_Django Administration"
-admin.sites.AdminSite.site_title = "TPL_Django Administration"
-admin.sites.AdminSite.index_title = "TPL_Django Admin Panel"
+admin.sites.AdminSite.site_header = "TDA Administration"
+admin.sites.AdminSite.site_title = "TDA Administration"
+admin.sites.AdminSite.index_title = "The Doe Agency Admin Panel"
