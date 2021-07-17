@@ -22,6 +22,7 @@ bandit = "^1.7.0"
 pyupgrade = "^2.21"
 pre-commit = "^2.13"
 django-debug-toolbar = "^3.2.1"
+coverage = "^5.5"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
