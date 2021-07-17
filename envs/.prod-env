@@ -3,15 +3,15 @@ ENVIRON=prod
 
 # run the following function in django shell to generate a secret key
 # django.core.management.utils.get_random_secret_key()
-SECRET_KEY=
-ALLOWED_HOSTS=
+#SECRET_KEY=
+#ALLOWED_HOSTS=
 DEBUG=False
 
-DB_ENGINE=django.db.backends.postgresql
-DB_HOST=127.0.0.1
-DB_PORT=5432
-DB_NAME=tda_db
-DB_USER=tda_user
-DB_PASS=tda_pass # dont forget to change the password!
+#DB_ENGINE=django.db.backends.postgresql
+#DB_HOST=127.0.0.1
+#DB_PORT=5432
+#DB_NAME=tda_db
+#DB_USER=tda_user
+#DB_PASS=tda_pass  # dont forget to change the password!
 
 TIME_ZONE=Australia/Perth
