@@ -32,12 +32,12 @@ repos:
       - id: bandit
   - repo: local
     hooks:
-#      - id: check-django-migrations
-#        name: Check Django Migrations
-#        entry: python manage.py makemigrations --check --no-input
-#        types: [ python ]
-#        language: system
-#        pass_filenames: false
+      - id: check-django-migrations
+        name: Check Django Migrations
+        entry: python manage.py makemigrations --check --no-input
+        types: [ python ]
+        language: system
+        pass_filenames: false
       - id: run-django-tests
         name: Run Django Tests
         entry: python manage.py test
