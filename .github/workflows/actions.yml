@@ -63,7 +63,7 @@ jobs:
       # setup project, make directories, copy local_settings
       - name: configure project
         run: |
-          mkdir logs && mkdir media && mkdir static
+          mkdir -p logs && mkdir -p media && mkdir -p static
           cp envs/.dev-env .env
       # initialize database with migrations
       # - name: run migrations

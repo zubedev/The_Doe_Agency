@@ -1,0 +1,30 @@
+version: "3.7"
+
+services:
+  db:
+    container_name: tda_db
+    image: postgres:13-alpine
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_DB=tda_db
+      - POSTGRES_USER=tda_user
+      - POSTGRES_PASSWORD=tda_pass
+
+  app:
+    container_name: tda_app
+    build:
+      context: .
+    ports:
+    - "8000:8000"
+    volumes:
+    - .:/The_Doe_Agency
+    command: >
+      sh -c "poetry run python manage.py runserver 0.0.0.0:8000"
+    environment:
+      - DB_HOST=db
+      - DB_NAME=tda_db
+      - DB_USER=tda_user
+      - DB_PASS=tda_pass
+    depends_on:
+      - db
