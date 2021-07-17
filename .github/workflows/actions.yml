@@ -76,7 +76,7 @@ jobs:
       # run project tests with coverage report, linting with flake8
       - name: run tests
         env:
-          SECRET_KEY: ${{ env.SECRET_KEY }}
+          SECRET_KEY: ${{ secrets.SECRET_KEY }}
           DB_NAME: $DB_NAME
           DB_USER: $DB_USER
           DB_PASS: $DB_PASS
