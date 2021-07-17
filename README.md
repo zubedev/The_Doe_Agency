@@ -6,5 +6,6 @@
 [![black](https://img.shields.io/badge/code%20style-black-000000.svg?style=flat-square&logo=stylelint)](https://github.com/psf/black)
 [![codecov](https://codecov.io/gh/ziibii88/The_Doe_Agency/branch/main/graph/badge.svg?token=IzFdh1NYXS)](https://codecov.io/gh/ziibii88/The_Doe_Agency)
 [![actions](https://github.com/ziibii88/The_Doe_Agency/workflows/TDA_CI/badge.svg)](https://github.com/ziibii88/The_Doe_Agency/actions)
+[![CodeQL](https://github.com/ziibii88/The_Doe_Agency/actions/workflows/codeql-analysis.yml/badge.svg)](https://github.com/ziibii88/The_Doe_Agency/actions/workflows/codeql-analysis.yml)
 
 An agency by John and Jane Doe providing proxy lists to the unknowns
