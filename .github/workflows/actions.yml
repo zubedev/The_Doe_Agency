@@ -66,14 +66,15 @@ jobs:
           mkdir -p logs && mkdir -p media && mkdir -p static
           cp envs/.dev-env .env
       # initialize database with migrations
-      # - name: run migrations
-      #   env:
-      #     DB_NAME: $DB_NAME
-      #     DB_USER: $DB_USER
-      #     DB_PASS: $DB_PASS
-      #   run: |
-      #     poetry run python manage.py wait_for_db
-      #     poetry run python manage.py migrate --noinput
+      - name: run migrations
+        env:
+          SECRET_KEY: $SECRET_KEY
+          DB_NAME: $DB_NAME
+          DB_USER: $DB_USER
+          DB_PASS: $DB_PASS
+        run: |
+          poetry run python manage.py wait_for_db
+          poetry run python manage.py migrate --noinput
       # run project tests with coverage report, linting with flake8
       - name: run tests
         env:
@@ -85,6 +86,8 @@ jobs:
           poetry run coverage run manage.py test
           poetry run coverage xml -o coverage.xml
           poetry run coverage report
+          poetry run python manage.py makemigrations --check --no-input
+          poetry run bandit -r .
           poetry run flake8
       # upload code coverage to codecov
       - uses: codecov/codecov-action@v1
