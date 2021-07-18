@@ -16,15 +16,25 @@ Including another URLconf
 from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import path, include
+from rest_framework_simplejwt import views as jwt
 
 from project import settings
 
 urlpatterns = [
-    # admin panel
+    # admin panel -------------------------------------------------------------
     path("admin/", admin.site.urls),
-    # health checks
+    # health checks -----------------------------------------------------------
     path("health/", include("health_check.urls")),
-    # core urls
+    # drf simple jwt ----------------------------------------------------------
+    path(
+        "token/obtain/",
+        jwt.TokenObtainPairView.as_view(),
+        name="token_obtain_pair",
+    ),
+    path(
+        "token/refresh/", jwt.TokenRefreshView.as_view(), name="token_refresh"
+    ),
+    # core urls ---------------------------------------------------------------
     path("", include("core.urls")),
 ]
 
