@@ -24,6 +24,8 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     # health checks
     path("health/", include("health_check.urls")),
+    # core urls
+    path("", include("core.urls")),
 ]
 
 # development environment urls ------------------------------------------------
