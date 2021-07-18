@@ -63,8 +63,11 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "django.contrib.sites",
+    "django.contrib.humanize",
     # 3rd party apps
-    # ...
+    "django_filters",
+    "rest_framework",
     # health_check
     "health_check",
     "health_check.db",
@@ -80,6 +83,8 @@ INSTALLED_APPS = [
     # project apps
     "core",
 ]
+
+SITE_ID = 1  # Sites framework
 
 if ENVIRON == "dev":
     INSTALLED_APPS.append("debug_toolbar")
@@ -188,3 +193,27 @@ MEDIA_ROOT = BASE_DIR / "media"
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+
+# Django REST Framework -------------------------------------------------------
+# https://www.django-rest-framework.org/api-guide/settings/
+
+REST_FRAMEWORK = {
+    "DEFAULT_AUTHENTICATION_CLASSES": [
+        "rest_framework.authentication.TokenAuthentication",
+        "rest_framework.authentication.SessionAuthentication",
+    ],
+    "DEFAULT_PERMISSION_CLASSES": [
+        "rest_framework.permissions.IsAuthenticated"
+    ],
+    "DEFAULT_FILTER_BACKENDS": [
+        # django-filters
+        # https://www.django-rest-framework.org/api-guide/filtering/
+        # https://django-filter.readthedocs.io/en/latest/guide/rest_framework.html
+        "django_filters.rest_framework.DjangoFilterBackend",
+        # https://www.django-rest-framework.org/api-guide/filtering/#searchfilter
+        "rest_framework.filters.SearchFilter",
+        # https://www.django-rest-framework.org/api-guide/filtering/#orderingfilter
+        "rest_framework.filters.OrderingFilter",
+    ],
+}

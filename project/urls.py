@@ -32,6 +32,9 @@ if settings.ENVIRON == "dev":
         settings.MEDIA_URL, document_root=settings.MEDIA_ROOT
     )
 
+    # drf auth endpoints during dev
+    urlpatterns.append(path("drf/", include("rest_framework.urls")))
+
     import debug_toolbar
 
     urlpatterns = [
