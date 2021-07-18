@@ -5,7 +5,7 @@ from django.utils.translation import gettext_lazy as _
 
 class User(AbstractUser):
     email = models.EmailField(_("Email address"), unique=True)
-    last_updated = models.DateTimeField(auto_now=True)
+    last_updated = models.DateTimeField(_("Last updated"), auto_now=True)
 
     class Meta(AbstractUser.Meta):
         swappable = "AUTH_USER_MODEL"
