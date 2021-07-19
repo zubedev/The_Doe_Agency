@@ -7,6 +7,46 @@ from django_countries.fields import CountryField
 from base.models import TimeStampedModel
 
 
+class Anonymity:
+    UNKNOWN = ("UNK", "Unknown")
+    TRANSPARENT = ("NOA", "Transparent")
+    ANONYMOUS = ("ANM", "Anonymous")
+    ELITE = ("HIA", "Elite")
+
+    @staticmethod
+    def as_tuple():
+        return (
+            Anonymity.UNKNOWN,
+            Anonymity.TRANSPARENT,
+            Anonymity.ANONYMOUS,
+            Anonymity.ELITE,
+        )
+
+    @staticmethod
+    def as_list():
+        return list(Anonymity.as_tuple())
+
+
+class Protocol:
+    HTTP = ("HTTP", "HTTP")
+    HTTPS = ("HTTPS", "HTTPS")
+    SOCKS4 = ("SOCKS4", "SOCKS4")
+    SOCKS5 = ("SOCKS5", "SOCKS5")
+
+    @staticmethod
+    def as_tuple():
+        return (
+            Protocol.HTTP,
+            Protocol.HTTPS,
+            Protocol.SOCKS4,
+            Protocol.SOCKS5,
+        )
+
+    @staticmethod
+    def as_list():
+        return list(Protocol.as_tuple())
+
+
 class Website(TimeStampedModel):
     name = models.CharField(_("Name of Site"), max_length=100, unique=True)
     code = models.CharField(_("Unique Code"), max_length=4)
@@ -48,6 +88,17 @@ class Page(TimeStampedModel):
     def full_path(self):
         return f"{self.site.url}{self.path}"
 
+    def get_scraper(self):
+        # TODO: Figure out a way to get the scraping function for page object
+        from scraper import scrapers
+
+        name_func = "scrape_index"
+        if hasattr(scrapers, name_func):
+            scrape_func = getattr(scrapers, name_func)
+            print(scrape_func)
+            return scrape_func
+        return None
+
 
 class Proxy(TimeStampedModel):
     ip = models.GenericIPAddressField(_("IP Address"))
@@ -58,22 +109,12 @@ class Proxy(TimeStampedModel):
     anonymity = models.CharField(
         _("Anonymity"),
         max_length=3,
-        choices=(
-            ("UNK", "Unknown"),
-            ("NOA", "Transparent"),
-            ("ANM", "Anonymous"),
-            ("HIA", "Elite"),
-        ),
+        choices=Anonymity.as_tuple(),
     )
     protocol = models.CharField(
         _("Protocol"),
         max_length=7,
-        choices=(
-            ("HTTP", "HTTP"),
-            ("HTTPS", "HTTPS"),
-            ("SOCKS4", "SOCKS4"),
-            ("SOCKS5", "SOCKS5"),
-        ),
+        choices=Protocol.as_tuple(),
     )
     found_in = models.ManyToManyField(
         Page, related_name="found_in_pages", verbose_name="Found in Pages"

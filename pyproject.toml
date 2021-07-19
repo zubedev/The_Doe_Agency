@@ -24,6 +24,8 @@ requests = "^2.26.0"
 requests-html = "^0.10.0"
 beautifulsoup4 = "^4.9.3"
 django-countries = "^7.2.1"
+requests-cache = "^0.7.1"
+urllib3 = "^1.26.6"
 
 [tool.poetry.dev-dependencies]
 flake8 = "^3.9"
