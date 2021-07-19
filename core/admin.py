@@ -39,7 +39,7 @@ class LogEntryAdmin(admin.ModelAdmin):
         return request.user.is_superuser
 
     def has_view_permission(self, request: HttpRequest, obj=None):
-        return request.user.is_superuser
+        return request.user.is_staff
 
     def user_link(self, obj: LogEntry):
         try:
