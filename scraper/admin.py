@@ -16,14 +16,14 @@ class WebsiteAdmin(admin.ModelAdmin):
     date_hierarchy = "created_at"
     readonly_fields = ("created_at", "updated_at")
     list_display = (
-        "name",
+        "__str__",
         "code",
         "url",
         "created_at",
         "updated_at",
         "is_active",
     )
-    list_display_links = ("name",)
+    list_display_links = ("__str__",)
     list_filter = ("is_active",)
     search_fields = ("id", "name", "code", "url", "created_at", "updated_at")
     inlines = (PageInline,)
@@ -31,3 +31,29 @@ class WebsiteAdmin(admin.ModelAdmin):
     def get_inline_instances(self, request, obj=None):
         """hides inlines during 'add object' view"""
         return obj and super().get_inline_instances(request, obj) or []
+
+
+@admin.register(models.Proxy)
+class ProxyAdmin(admin.ModelAdmin):
+    model = models.Proxy
+    date_hierarchy = "created_at"
+    readonly_fields = (
+        "created_at",
+        "updated_at",
+        "checked_at",
+        "checked_count",
+    )
+    list_display = (
+        "__str__",
+        "protocol",
+        "anonymity",
+        "country",
+        "created_at",
+        "checked_at",
+        "updated_at",
+        "is_dead",
+        "is_active",
+    )
+    list_display_links = ("__str__",)
+    list_filter = ("is_active", "is_dead", "anonymity", "protocol")
+    search_fields = ("id", "ip", "port", "protocol", "anonymity", "country")

@@ -208,6 +208,20 @@ argon2 = ["argon2-cffi (>=19.1.0)"]
 bcrypt = ["bcrypt"]
 
 [[package]]
+name = "django-countries"
+version = "7.2.1"
+description = "Provides a country field for Django models."
+category = "main"
+optional = false
+python-versions = "*"
+
+[package.extras]
+dev = ["tox", "black", "django", "pytest", "pytest-django", "djangorestframework", "graphene-django"]
+maintainer = ["transifex-client", "zest.releaser", "django"]
+pyuca = ["pyuca"]
+test = ["pytest", "pytest-django", "pytest-cov", "graphene-django"]
+
+[[package]]
 name = "django-debug-toolbar"
 version = "3.2.1"
 description = "A configurable set of panels that display various debug information about the current request/response."
@@ -870,7 +884,7 @@ python-versions = ">=3.6.1"
 [metadata]
 lock-version = "1.1"
 python-versions = "~3.9"
-content-hash = "d6e0ee0c7f60e6319ded09a335d6f503a31991e0591512f1bb29f66c7c64ce41"
+content-hash = "20a4fbc3dbc9a8a0097c64ce4dd2c734e4f5ef5cdfa1414e258414f50754c08c"
 
 [metadata.files]
 appdirs = [
@@ -994,6 +1008,10 @@ distlib = [
 django = [
     {file = "Django-3.2.5-py3-none-any.whl", hash = "sha256:c58b5f19c5ae0afe6d75cbdd7df561e6eb929339985dbbda2565e1cabb19a62e"},
     {file = "Django-3.2.5.tar.gz", hash = "sha256:3da05fea54fdec2315b54a563d5b59f3b4e2b1e69c3a5841dda35019c01855cd"},
+]
+django-countries = [
+    {file = "django-countries-7.2.1.tar.gz", hash = "sha256:26878b54d36bedff30b4535ceefcb8af6784741a8b30b1b8a662fb14a936a4ab"},
+    {file = "django_countries-7.2.1-py3-none-any.whl", hash = "sha256:adc965f1d348124274b7d918fc1aad5e29609758af999e1822baa9f2cc06d1b8"},
 ]
 django-debug-toolbar = [
     {file = "django-debug-toolbar-3.2.1.tar.gz", hash = "sha256:a5ff2a54f24bf88286f9872836081078f4baa843dc3735ee88524e89f8821e33"},
