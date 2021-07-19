@@ -84,6 +84,7 @@ INSTALLED_APPS = [
     # 'health_check.contrib.redis',
     # project apps
     "core",
+    "scraper",
 ]
 
 SITE_ID = 1  # Sites framework

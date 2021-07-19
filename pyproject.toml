@@ -20,6 +20,9 @@ django-health-check = "^3.16.4"
 psutil = "^5.8.0"
 djangorestframework-stubs = "^1.4.0"
 djangorestframework-simplejwt = "^4.7.2"
+requests = "^2.26.0"
+requests-html = "^0.10.0"
+beautifulsoup4 = "^4.9.3"
 
 [tool.poetry.dev-dependencies]
 flake8 = "^3.9"

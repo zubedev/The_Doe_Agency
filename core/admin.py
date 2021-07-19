@@ -5,7 +5,7 @@ from django.http import HttpRequest
 from django.urls import reverse
 from django.utils.html import escape, format_html
 
-from core.models import User
+from core import models
 
 
 @admin.register(LogEntry)
@@ -67,8 +67,9 @@ class LogEntryAdmin(admin.ModelAdmin):
     object_link.short_description = "object"
 
 
-@admin.register(User)
+@admin.register(models.User)
 class UserAdmin(UserAdmin):
+    model = models.User
     date_hierarchy = "date_joined"
     list_display = (
         "username",
