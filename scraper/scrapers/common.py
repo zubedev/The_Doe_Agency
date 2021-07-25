@@ -5,6 +5,7 @@ import typing
 import requests
 import requests_cache
 from bs4 import BeautifulSoup
+from django.db.models import QuerySet
 from django.utils import timezone
 from requests import Response
 from selenium import webdriver
@@ -17,6 +18,25 @@ from project.settings import TEST_URL
 from scraper.models import Website, Page, Proxy
 
 logger = getLogger(__name__)
+
+
+def get_sites(is_active=True, **kwargs) -> QuerySet[Website]:
+    """Returns active <Website> queryset
+    Args:
+        is_active: a boolean active status of <Website> object
+        kwargs: keyword arguments passed to <Website> objects filter
+    Returns:
+        Queryset[<Website>]: <Website> queryset
+    """
+    logger.info("Getting sites...")
+    logger.debug(f"is_active: {is_active}, kwargs: {kwargs}")
+
+    params = {"is_active": is_active, **kwargs}
+    sites = Website.objects.filter(**params)
+
+    logger.info("Returning website queryset")
+    logger.debug(f"Sites: {sites}")
+    return sites
 
 
 def get_pages(
@@ -257,3 +277,108 @@ def save_to_db(page: Page, proxies: list[dict]) -> list[Proxy]:
     logger.info("Saved to database.")
     logger.debug(f"Proxies: {saved}")
     return saved
+
+
+def scrape_page(
+    page: Page = None, pk: int = None, **kwargs: dict
+) -> list[Proxy]:
+    """Single <Page> scrape function
+    Args:
+        page: <Page> object
+        pk: <Page> object pk/id (int)
+        kwargs: keyword arguments passed to <Page> objects filter
+    Returns:
+        list: List of proxies in `dict`
+    """
+    if not page and not pk:
+        raise ValueError("Must provide at least: `page` or `pk`")
+    if not page and pk:
+        params = {"pk": pk, **kwargs}
+        page = Page.objects.select_related("site").filter(**params).first()
+    if not page:
+        return []
+
+    parser = page.get_parser()
+    if not parser:
+        return []
+
+    try:
+        logger.info(f"{page} Commenced scraping...")
+
+        content = get_content(page)  # page source
+        soup = BeautifulSoup(content, "html.parser")  # parse the html content
+        proxies = parser(soup)  # list of extracted proxies
+        tested = get_tested(proxies)  # list of tested proxies
+        saved_to_db = save_to_db(page, tested)  # list of saved proxies
+
+        logger.info(f"{page} Scrape complete.")
+        return saved_to_db
+    except Exception as e:
+        logger.error(f"{page} {e}")
+        logger.warning(f"{page} Scrape failed.")
+        return []
+
+
+def scrape_site(
+    site: Website = None, code: str = None, pk: int = None, **kwargs: dict
+) -> list[Proxy]:
+    """Single <Website> scrape function
+    Args:
+        site: <Website> object
+        code: <Website> `code` value (str)
+        pk: <Website> object pk/id (int)
+        kwargs: keyword arguments passed to <Website> objects filter
+    Returns:
+        list: List of proxies in `dict`
+    """
+    if not site and not code and not pk:
+        raise ValueError("Must provide at least: `site` or `code` or `pk`")
+    if not site and (code or pk):
+        params = {**kwargs}
+        if pk:
+            params.update({"pk": pk})
+        elif code:
+            params.update({"code": code})
+        site = (
+            Website.objects.prefetch_related("pages").filter(**params).first()
+        )
+    if not site:
+        return []
+
+    logger.info(f"{site} Commenced scraping...")
+    pages = site.pages.select_related("site").filter(is_active=True)
+
+    proxy_list: list[Proxy] = []
+    for page in pages:
+        try:
+            proxy_list += scrape_page(page)
+        except Exception as e:  # continue to next loop for any error
+            logger.error(e)
+            continue
+
+    logger.info(f"{site} Scrape complete.")
+    return proxy_list
+
+
+def scrape(
+    sites: typing.Union[list[Website], QuerySet[Website]] = None
+) -> list[Proxy]:
+    """Main scrape function
+    Args:
+        sites: List of <Website> or QuerySet[<Website>]
+    Returns:
+        list: List of proxies in `dict`
+    """
+    if not sites:
+        sites = get_sites()  # is_active=True (default)
+
+    proxy_list: list[Proxy] = []
+    for site in sites:
+        try:
+            proxy_list += scrape_site(site)
+        except Exception as e:  # continue to next loop for any error
+            logger.error(e)
+            continue
+
+    logger.debug(f"Proxies: {proxy_list}")
+    return proxy_list

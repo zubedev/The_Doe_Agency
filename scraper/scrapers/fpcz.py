@@ -7,11 +7,8 @@ from scraper.scrapers import common
 
 logger = getLogger(__name__)
 
-WEBSITE = "SpysOne"
-CODE = "SPY1"
 
-
-def _extract_proxies(soup: BeautifulSoup):
+def parse(soup: BeautifulSoup):
     logger.info("Commenced parsing...")
     proxies = []  # list of params for object creation
 
@@ -25,7 +22,7 @@ def _extract_proxies(soup: BeautifulSoup):
 
     for r in rows:
         cols = common.slurp(r, "select", "td")  # get the columns in each row
-        if len(cols) <= 1:  # ADs or invalid data row
+        if len(cols) <= 1:
             continue  # invalid row, continue to next row
 
         ip_port = str(cols[0].find("font").text).strip().split(":")
@@ -59,24 +56,3 @@ def _extract_proxies(soup: BeautifulSoup):
     logger.debug(f"Proxies: {proxies}")
     logger.info("Parsing complete")
     return proxies
-
-
-def scrape():
-    proxy_list = []
-    pages = common.get_pages(site__code=CODE)
-
-    for page in pages:
-        logger.info(f"{page} Commenced scraping...")
-
-        content = common.get_content(page)  # page source
-        soup = BeautifulSoup(content, "html.parser")  # parse the html content
-        proxies = _extract_proxies(soup)  # list of extracted proxies
-        tested = common.get_tested(proxies)  # list of tested proxies
-        saved_to_db = common.save_to_db(page, tested)  # list of saved proxies
-
-        if saved_to_db:
-            proxy_list += saved_to_db
-        logger.info(f"{page} Scrape complete.")
-
-    logger.debug(f"Proxies: {proxy_list}")
-    return proxy_list

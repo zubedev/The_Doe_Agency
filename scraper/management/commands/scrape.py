@@ -1,11 +1,8 @@
 from django.core.management import BaseCommand
 
-from scraper.scrapers import sslproxies, spysone, freeproxylists
+from scraper.scrapers.common import scrape
 
 
 class Command(BaseCommand):
     def handle(self, *args, **options):
-        sslproxies.scrape()
-        # freeproxy.scrape()
-        spysone.scrape()
-        freeproxylists.scrape()
+        print(scrape())
