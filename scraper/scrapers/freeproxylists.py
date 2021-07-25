@@ -1,4 +1,3 @@
-from distutils.util import strtobool
 from logging import getLogger
 
 from bs4 import BeautifulSoup
@@ -8,38 +7,53 @@ from scraper.scrapers import common
 
 logger = getLogger(__name__)
 
-WEBSITE = "SSLProxies"
-CODE = "SSLP"
+WEBSITE = "FreeProxyLists"
+CODE = "FPLS"
 
 
 def _extract_proxies(soup: BeautifulSoup):
     logger.info("Commenced parsing...")
     proxies = []  # list of params for object creation
 
-    table = common.slurp(soup, kv={"id": "proxylisttable"})
-    # headings = common.slurp(table, "select", "thead > tr > th")
-    rows = common.slurp(table, "select", "tbody > tr")
+    table = common.slurp(soup, kv={"class": "DataGrid"})
+    # headings = common.slurp(table, kv={"class": "Caption"}).select("td")
+    rows = common.slurp(table, "select", "tbody > tr")[1:]  # ignore 1st row
+
     for r in rows:
         cols = common.slurp(r, "select", "td")  # get the columns in each row
-        anonymity = [
-            a[0]
-            for a in Anonymity.as_tuple()
-            if a[1].lower() in str(cols[4].text).strip().lower()
-        ]
-        protocol = (
-            Protocol.HTTPS[0]
-            if bool(strtobool(str(cols[6].text).strip()))
-            else Protocol.HTTP[0]
+        if len(cols) <= 1:  # ADs or invalid data row
+            continue  # invalid row, continue to next row
+
+        ip = str(cols[0].find("a").text).strip()
+        port = str(cols[1].text).strip()
+        protocol = str(cols[2].text).strip()
+        anonymity = str(cols[3].text).strip()
+        country = (
+            str(cols[4].find("img")["src"])
+            .strip()
+            .split("/")[-1]
+            .split(".")[0]
+            .upper()
         )
+
+        anonymity = (
+            Anonymity.ELITE[0]
+            if "HIGH" in anonymity.upper()
+            else Anonymity.ANONYMOUS[0]
+        )
+        protocol = [
+            p[0]
+            for p in Protocol.as_tuple()
+            if p[0].upper() == protocol.upper()
+        ]
+
         proxies.append(
             {
-                "ip": str(cols[0].text).strip(),
-                "port": int(str(cols[1].text).strip()),
-                "country": str(cols[2].text).strip(),
-                "anonymity": anonymity[0]
-                if anonymity
-                else Anonymity.UNKNOWN[0],
-                "protocol": protocol,
+                "ip": ip,
+                "port": port,
+                "country": country,
+                "anonymity": anonymity,
+                "protocol": protocol[0] if protocol else Protocol.HTTP[0],
             }
         )
 

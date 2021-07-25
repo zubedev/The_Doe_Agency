@@ -123,6 +123,8 @@ TEMPLATES = [
 
 AUTH_USER_MODEL = "core.User"
 
+TEST_URL = "https://httpbin.org/ip"
+
 WSGI_APPLICATION = "project.wsgi.application"
 
 

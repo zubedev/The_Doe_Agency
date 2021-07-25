@@ -92,7 +92,7 @@ class Page(TimeStampedModel):
         # TODO: Figure out a way to get the scraping function for page object
         from scraper import scrapers
 
-        name_func = "scrape_index"
+        name_func = "scrape"
         if hasattr(scrapers, name_func):
             scrape_func = getattr(scrapers, name_func)
             print(scrape_func)
