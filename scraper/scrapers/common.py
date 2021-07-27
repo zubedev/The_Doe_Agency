@@ -1,3 +1,5 @@
+import concurrent.futures
+from concurrent.futures import ThreadPoolExecutor
 from datetime import timedelta
 from logging import getLogger
 import typing
@@ -76,7 +78,7 @@ def get_pages(
     return pages
 
 
-def _get_page_source(url: str, timeout: int = 10) -> bytes or None:
+def get_page_source(url: str, timeout: int = 10) -> bytes or None:
     """Returns non JS rendered page source code"""
     try:  # catch requests exceptions
         res: Response = requests.get(url, timeout=timeout)
@@ -92,7 +94,7 @@ def _get_page_source(url: str, timeout: int = 10) -> bytes or None:
     return res.content
 
 
-def _get_driver(browser: str = "Chrome", headless: bool = True, *args):
+def get_driver(browser: str = "Chrome", headless: bool = True, *args):
     """Returns a configure selenium web driver"""
     arguments = ["--window-size=1920,1080", "--incognito", *args]
     if headless:
@@ -116,10 +118,10 @@ def _get_driver(browser: str = "Chrome", headless: bool = True, *args):
     return driver
 
 
-def _get_js_page_source(url: str):
+def get_js_page_source(url: str):
     """Returns JS rendered page source code"""
     try:  # catch requests exceptions
-        driver = _get_driver()
+        driver = get_driver()
         driver.get(url)
         content = driver.page_source
         driver.quit()
@@ -161,9 +163,9 @@ def get_content(
     requests_cache.install_cache(expire_after=timedelta(seconds=cache))
 
     if has_js:  # js rendered via selenium
-        page_source = _get_js_page_source(url)
+        page_source = get_js_page_source(url)
     else:  # non js html page source
-        page_source = _get_page_source(url)
+        page_source = get_page_source(url)
 
     logger.info("Returning page source.")
     logger.debug(f"Page source: {page_source}")
@@ -198,23 +200,45 @@ def slurp(
 
 
 def test_ip_port(
-    ip: str,
-    port: typing.Union[int, str],
+    proxy: dict = None,
+    ip: str = None,
+    port: typing.Union[int, str] = None,
     protocol: str = "http",
     test_url: str = TEST_URL,
     timeout: int = 10,
-) -> bool:
-    """Returns True for a valid proxy"""
+) -> tuple[bool, dict]:
+    """Tests for a working proxy
+    Args:
+        proxy [dict]: Dictionary containing ip, port, protocol, etc
+        ip [str]: If proxy[dict] not given, must provide the ip address
+        port [str|int]: Must provide a port paired with ip address
+        protocol [str]: Proxy protocol; default=http
+        test_url[str]: URL to test the proxy against; default=settings.TEST_URL
+        timeout [int]: Connection timeout in seconds; default=10
+    Returns:
+        tuple[bool, dict]: Status of Proxy, Proxy details
+    Raises:
+        ValueError: if proxy[dict] or ip:port not provided
+    """
+    if proxy and not ip and not port:
+        ip = proxy.get("ip", None)
+        port = proxy.get("port", None)
+        protocol = proxy.get("protocol", None)
+    if not ip and not port:
+        raise ValueError("Must provide proxy or ip:port")
+    if not proxy and ip and port:
+        proxy = {"ip": ip, "port": port, "protocol": protocol}
+
     logger.debug(f"Testing proxy ip: {ip}, port: {port}, protocol: {protocol}")
-    proxy = {protocol.lower(): f"http://{ip}:{port}"}
+    params = {protocol.lower(): f"http://{ip}:{port}"}
 
     try:  # test the proxy
         with requests_cache.disabled():
-            res = requests.get(test_url, proxies=proxy, timeout=timeout)
-        return res.ok
+            res = requests.get(test_url, proxies=params, timeout=timeout)
+        return res.ok, proxy
     except Exception as e:
-        logger.error(f"<{proxy}> {e}")
-        return False
+        logger.error(f"<{params}> {e}")
+        return False, proxy
 
 
 def get_tested(
@@ -231,14 +255,22 @@ def get_tested(
     logger.info("Commenced proxy testing...")
     tested = []  # list of tested proxies
 
-    for p in proxies:
-        if Proxy.objects.filter(ip=p["ip"], port=p["port"]).exists():
-            continue  # no need to test proxy already in db
-        status = test_ip_port(
-            p["ip"], p["port"], p["protocol"], test_url, timeout
-        )
-        if status:  # add tested proxy to list if connectable
-            tested.append(p)
+    with ThreadPoolExecutor() as executor:
+        futures = []
+
+        for p in proxies:
+            if Proxy.objects.filter(ip=p["ip"], port=p["port"]).exists():
+                continue  # skip testing existing proxy, will bulk test in bg
+            kwargs = {"proxy": p, "test_url": test_url, "timeout": timeout}
+            futures.append(executor.submit(test_ip_port, **kwargs))
+
+        for future in concurrent.futures.as_completed(futures):
+            try:
+                status, proxy = future.result()
+                if status:  # add tested proxy to list if connectable
+                    tested.append(proxy)
+            except Exception as e:
+                logger.error(e)
 
     logger.info("Proxy testing complete")
     logger.debug(f"Tested proxies: {tested}")
