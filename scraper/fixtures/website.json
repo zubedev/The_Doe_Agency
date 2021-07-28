@@ -1,0 +1,50 @@
+[
+{
+  "model": "scraper.website",
+  "pk": 1,
+  "fields": {
+    "created_at": "2021-07-19T06:38:11.033Z",
+    "updated_at": "2021-07-24T09:32:16.870Z",
+    "is_active": true,
+    "name": "SSLProxies",
+    "code": "SSLP",
+    "url": "https://www.sslproxies.org"
+  }
+},
+{
+  "model": "scraper.website",
+  "pk": 2,
+  "fields": {
+    "created_at": "2021-07-21T12:23:33.277Z",
+    "updated_at": "2021-07-25T08:04:12.361Z",
+    "is_active": false,
+    "name": "Free-Proxy",
+    "code": "FPCZ",
+    "url": "http://free-proxy.cz"
+  }
+},
+{
+  "model": "scraper.website",
+  "pk": 3,
+  "fields": {
+    "created_at": "2021-07-21T12:49:32.043Z",
+    "updated_at": "2021-07-24T09:32:41.946Z",
+    "is_active": true,
+    "name": "SpysOne",
+    "code": "SPY1",
+    "url": "https://spys.one"
+  }
+},
+{
+  "model": "scraper.website",
+  "pk": 4,
+  "fields": {
+    "created_at": "2021-07-25T08:05:16.686Z",
+    "updated_at": "2021-07-25T08:06:25.250Z",
+    "is_active": true,
+    "name": "FreeProxyLists",
+    "code": "FPLS",
+    "url": "http://www.freeproxylists.net"
+  }
+}
+]

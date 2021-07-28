@@ -57,3 +57,27 @@ class ProxyAdmin(admin.ModelAdmin):
     list_display_links = ("__str__",)
     list_filter = ("is_active", "is_dead", "anonymity", "protocol")
     search_fields = ("id", "ip", "port", "protocol", "anonymity", "country")
+
+
+@admin.register(models.Scrape)
+class ScrapeAdmin(admin.ModelAdmin):
+    model = models.Scrape
+    date_hierarchy = "created_at"
+    readonly_fields = (
+        "created_at",
+        "updated_at",
+        "completed_at",
+    )
+    list_display = (
+        "__str__",
+        "proxies",
+        "completed_at",
+        "is_success",
+        "error",
+        "created_at",
+        "updated_at",
+        "is_active",
+    )
+    list_display_links = ("__str__",)
+    list_filter = ("is_active", "is_success")
+    search_fields = ("id", "error")

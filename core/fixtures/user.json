@@ -1,0 +1,80 @@
+[
+{
+  "model": "core.user",
+  "pk": 1,
+  "fields": {
+    "password": "pbkdf2_sha256$260000$qeUtE9u3eMnIucRheCOLWa$lHVlpZvWnS7brii/jlzsmFcsYsDgENssQZhobNS5S4w=",
+    "last_login": "2021-07-19T06:35:25.898Z",
+    "is_superuser": true,
+    "username": "superuser",
+    "first_name": "Zubair",
+    "last_name": "Beg",
+    "is_staff": true,
+    "is_active": true,
+    "date_joined": "2021-07-18T13:37:39.343Z",
+    "email": "ziibii88@gmail.com",
+    "last_updated": "2021-07-18T13:38:14.605Z",
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "core.user",
+  "pk": 2,
+  "fields": {
+    "password": "pbkdf2_sha256$260000$ukmAoZJffP8og8olHXKQBk$5UtJr/vdIB7ik0m/rRexCgwZ+jaOPUWg9OCsgK5cheg=",
+    "last_login": null,
+    "is_superuser": false,
+    "username": "scraper",
+    "first_name": "Mr.",
+    "last_name": "Scraper",
+    "is_staff": true,
+    "is_active": true,
+    "date_joined": "2021-07-28T11:17:37.641Z",
+    "email": "scraper@zube.dev",
+    "last_updated": "2021-07-28T11:22:51.267Z",
+    "groups": [
+      2
+    ],
+    "user_permissions": []
+  }
+},
+{
+  "model": "core.user",
+  "pk": 3,
+  "fields": {
+    "password": "pbkdf2_sha256$260000$4JdujmoK1GH4QLgrYFUTG0$yT+wHq4VNt0aT4hOGbCBwe/RC1r4CxW6HFkgS3LUAfg=",
+    "last_login": "2021-07-19T03:41:01.765Z",
+    "is_superuser": false,
+    "username": "staffuser",
+    "first_name": "Staff",
+    "last_name": "User",
+    "is_staff": true,
+    "is_active": true,
+    "date_joined": "2021-07-19T02:41:25.572Z",
+    "email": "ziibii88@live.com",
+    "last_updated": "2021-07-19T02:42:29.603Z",
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "core.user",
+  "pk": 4,
+  "fields": {
+    "password": "pbkdf2_sha256$260000$dbrN2CK5aP6eJJlj7QFgG9$664NrA0Igc8k/s57CVDCwOEp+hjU1EWCkKy7k3qa8fU=",
+    "last_login": null,
+    "is_superuser": false,
+    "username": "testuser",
+    "first_name": "Test",
+    "last_name": "User",
+    "is_staff": false,
+    "is_active": true,
+    "date_joined": "2021-07-19T02:43:37.223Z",
+    "email": "mzbeg@our.ecu.edu.au",
+    "last_updated": "2021-07-19T02:43:37.422Z",
+    "groups": [],
+    "user_permissions": []
+  }
+}
+]

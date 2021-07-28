@@ -17,7 +17,7 @@ from webdriver_manager.chrome import ChromeDriverManager
 from webdriver_manager.firefox import GeckoDriverManager
 
 from project.settings import TEST_URL
-from scraper.models import Website, Page, Proxy
+from scraper.models import Website, Page, Proxy, Scrape
 
 logger = getLogger(__name__)
 
@@ -320,7 +320,7 @@ def scrape_page(
         pk: <Page> object pk/id (int)
         kwargs: keyword arguments passed to <Page> objects filter
     Returns:
-        list: List of proxies in `dict`
+        list: List of <Proxy>
     """
     if not page and not pk:
         raise ValueError("Must provide at least: `page` or `pk`")
@@ -352,16 +352,21 @@ def scrape_page(
 
 
 def scrape_site(
-    site: Website = None, code: str = None, pk: int = None, **kwargs: dict
-) -> list[Proxy]:
+    site: Website = None,
+    code: str = None,
+    pk: int = None,
+    obj: Scrape = None,
+    **kwargs: dict,
+) -> tuple[list[Proxy], Scrape]:
     """Single <Website> scrape function
     Args:
         site: <Website> object
         code: <Website> `code` value (str)
         pk: <Website> object pk/id (int)
+        obj: <Scrape> object for recording
         kwargs: keyword arguments passed to <Website> objects filter
     Returns:
-        list: List of proxies in `dict`
+        tuple: List of <Proxy>, <Scrape> obj
     """
     if not site and not code and not pk:
         raise ValueError("Must provide at least: `site` or `code` or `pk`")
@@ -375,10 +380,12 @@ def scrape_site(
             Website.objects.prefetch_related("pages").filter(**params).first()
         )
     if not site:
-        return []
+        return [], obj
 
     logger.info(f"{site} Commenced scraping...")
     pages = site.pages.select_related("site").filter(is_active=True)
+    if obj and pages:
+        obj.pages.add(*pages)
 
     proxy_list: list[Proxy] = []
     for page in pages:
@@ -389,7 +396,7 @@ def scrape_site(
             continue
 
     logger.info(f"{site} Scrape complete.")
-    return proxy_list
+    return proxy_list, obj
 
 
 def scrape(
@@ -401,16 +408,27 @@ def scrape(
     Returns:
         list: List of proxies in `dict`
     """
+    obj = Scrape.objects.create()  # record the scrape
+
     if not sites:
         sites = get_sites()  # is_active=True (default)
+        if sites:
+            obj.sites.add(*sites)
 
     proxy_list: list[Proxy] = []
     for site in sites:
         try:
-            proxy_list += scrape_site(site)
+            proxies, obj = scrape_site(site, obj=obj)
+            proxy_list += proxies
         except Exception as e:  # continue to next loop for any error
             logger.error(e)
             continue
 
-    logger.debug(f"Proxies: {proxy_list}")
+    # Scrape object
+    obj.proxies = len(proxy_list)
+    obj.completed_at = timezone.now()
+    obj.is_success = True
+    obj.save()
+
+    logger.debug(f"Scrape: {obj}, Proxies: {proxy_list}")
     return proxy_list

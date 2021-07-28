@@ -1,0 +1,50 @@
+[
+{
+  "model": "scraper.page",
+  "pk": 1,
+  "fields": {
+    "created_at": "2021-07-19T06:39:43.486Z",
+    "updated_at": "2021-07-24T09:32:16.893Z",
+    "is_active": true,
+    "site": 1,
+    "path": "/",
+    "has_js": false
+  }
+},
+{
+  "model": "scraper.page",
+  "pk": 2,
+  "fields": {
+    "created_at": "2021-07-21T12:25:30.658Z",
+    "updated_at": "2021-07-24T09:32:31.584Z",
+    "is_active": true,
+    "site": 2,
+    "path": "/en/proxylist/country/all/https/date/all/",
+    "has_js": true
+  }
+},
+{
+  "model": "scraper.page",
+  "pk": 3,
+  "fields": {
+    "created_at": "2021-07-21T12:50:50.786Z",
+    "updated_at": "2021-07-24T09:32:41.969Z",
+    "is_active": true,
+    "site": 3,
+    "path": "/en/https-ssl-proxy/",
+    "has_js": true
+  }
+},
+{
+  "model": "scraper.page",
+  "pk": 4,
+  "fields": {
+    "created_at": "2021-07-25T08:06:25.272Z",
+    "updated_at": "2021-07-25T08:06:25.272Z",
+    "is_active": true,
+    "site": 4,
+    "path": "/?c=&pt=&pr=HTTPS&a%5B%5D=1&a%5B%5D=2&u=0",
+    "has_js": true
+  }
+}
+]
