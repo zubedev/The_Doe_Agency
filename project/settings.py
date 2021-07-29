@@ -70,6 +70,8 @@ INSTALLED_APPS = [
     "django_filters",
     "rest_framework",
     "rest_framework_simplejwt",
+    "django_celery_results",
+    "django_celery_beat",
     # health_check
     "health_check",
     "health_check.db",
@@ -256,3 +258,16 @@ SIMPLE_JWT = {
     "SLIDING_TOKEN_LIFETIME": timedelta(minutes=15),
     "SLIDING_TOKEN_REFRESH_LIFETIME": timedelta(days=1),
 }
+
+
+# Celery ----------------------------------------------------------------------
+# https://docs.celeryproject.org/en/stable/userguide/configuration.html#configuration-and-defaults
+
+CELERY_BROKER_URL = config(
+    "CELERY_BROKER_URL", default="amqp://127.0.0.1:5672/"
+)
+CELERY_RESULT_BACKEND = config("CELERY_RESULT_BACKEND", default="django-db")
+CELERY_CACHE_BACKEND = config("CELERY_CACHE_BACKEND", default="django-cache")
+CELERY_TIMEZONE = config("CELERY_TIME_ZONE", default=TIME_ZONE)
+CELERY_TASK_TRACK_STARTED = config("CELERY_TASK_TRACK_STARTED", default=True)
+CELERY_TASK_TIME_LIMIT = config("CELERY_TASK_TIME_LIMIT", default=30 * 60)

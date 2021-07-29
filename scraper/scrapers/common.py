@@ -96,20 +96,26 @@ def get_page_source(url: str, timeout: int = 10) -> bytes or None:
 
 def get_driver(browser: str = "Chrome", headless: bool = True, *args):
     """Returns a configure selenium web driver"""
-    arguments = ["--window-size=1920,1080", "--incognito", *args]
+    arguments = []
     if headless:
         arguments.append("--headless")
+    arguments += [
+        "--no-sandbox",
+        "--disable-dev-shm-usage",
+        "--incognito",
+        *args,
+    ]
 
     if browser.lower() == "firefox":
         options = FirefoxOptions()
-        for a in args:
+        for a in arguments:
             options.add_argument(a)
         driver = webdriver.Firefox(
             executable_path=GeckoDriverManager().install(), options=options
         )
     else:  # Chrome, by default
         options = ChromeOptions()
-        for a in args:
+        for a in arguments:
             options.add_argument(a)
         driver = webdriver.Chrome(
             executable_path=ChromeDriverManager().install(), options=options

@@ -1,22 +1,41 @@
-version: "3.7"
+version: "3.8"
 
 services:
   db:
     container_name: tda_db
     image: postgres:13-alpine
-    ports:
-      - "5432:5432"
+    env_file:
+      - .env
     environment:
       - POSTGRES_DB=tda_db
       - POSTGRES_USER=tda_user
       - POSTGRES_PASSWORD=tda_pass
+    ports:
+      - 5432:5432
+    restart: unless-stopped
+
+  mq:
+    container_name: tda_mq
+    image: rabbitmq:3.8-management-alpine
+    hostname: tda_mq
+    env_file:
+      - .env
+    ports:
+      - 5672:5672
+      - 15672:15672
+    restart: unless-stopped
 
   app:
     container_name: tda_app
     build:
       context: .
+    env_file:
+      - .env
+    environment:
+      - DB_HOST=db
+      - CELERY_BROKER_URL=amqp://mq:5672/
     ports:
-    - "8000:8000"
+    - 8000:8000
     volumes:
     - .:/The_Doe_Agency
     command: >
@@ -26,10 +45,41 @@ services:
       poetry run python manage.py loaddata */fixtures/* &&
       poetry run python manage.py runserver 0.0.0.0:8000
       "
-    environment:
-      - DB_HOST=db
-      - DB_NAME=tda_db
-      - DB_USER=tda_user
-      - DB_PASS=tda_pass
     depends_on:
       - db
+      - mq
+    restart: unless-stopped
+
+  worker:
+    container_name: tda_worker
+    build:
+      context: .
+    env_file:
+      - .env
+    environment:
+      - DB_HOST=db
+      - CELERY_BROKER_URL=amqp://mq:5672/
+    ports:
+      - 8001:8000
+    command: poetry run celery -A project worker -l INFO
+    depends_on:
+      - mq
+      - db
+    restart: unless-stopped
+
+  scheduler:
+    container_name: tda_scheduler
+    build:
+      context: .
+    env_file:
+      - .env
+    environment:
+      - DB_HOST=db
+      - CELERY_BROKER_URL=amqp://mq:5672/
+    ports:
+      - 8002:8000
+    command: poetry run celery -A project beat -l INFO --scheduler django_celery_beat.schedulers:DatabaseScheduler
+    depends_on:
+      - mq
+      - db
+    restart: unless-stopped
