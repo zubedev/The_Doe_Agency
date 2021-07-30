@@ -5,16 +5,16 @@ from concurrent.futures import ThreadPoolExecutor
 
 from django.utils import timezone
 
-from scraper.models import Proxy
+from scraper.models import Proxy, Check
 from scraper.scrapers.common import test_ip_port
 
 logger = getLogger(__name__)
 
 
 def get_proxies(is_active: bool = True, **kwargs: dict):
-    """Returns active proxies queryset dict with only ip, port and protocol"""
+    """Returns available active proxies queryset"""
     params = {"is_active": is_active, **kwargs}
-    return Proxy.objects.filter(**params).values("ip", "port", "protocol")
+    return Proxy.objects.filter(**params)
 
 
 def check(**kwargs: dict) -> None:
@@ -22,10 +22,16 @@ def check(**kwargs: dict) -> None:
     Args:
         kwargs [dict]: keyword arguments passed to <Proxy> filter
     """
+    logger.info("Commencing all available proxy check...")
     proxies = get_proxies(**kwargs)
+
+    obj = Check.objects.create()
+    if proxies:
+        obj.proxies.add(*proxies)
 
     with ThreadPoolExecutor() as executor:
         futures = []
+        proxies = proxies.values("ip", "port", "protocol")
         for proxy in proxies:
             futures.append(executor.submit(test_ip_port, **proxy))
         for future in concurrent.futures.as_completed(futures):
@@ -42,3 +48,9 @@ def check(**kwargs: dict) -> None:
                     qs.delete()
             except Exception as e:
                 logger.error(e)
+
+    # Check object
+    obj.completed_at = timezone.now()
+    obj.is_success = True
+    obj.save()
+    logger.info("Proxy check completed!")

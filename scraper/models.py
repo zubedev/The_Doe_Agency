@@ -6,7 +6,7 @@ from django.utils.functional import cached_property
 from django.utils.translation import gettext_lazy as _
 from django_countries.fields import CountryField
 
-from base.models import TimeStampedModel
+from base.models import TimeStampedModel, TaskLogModel
 
 
 class Anonymity:
@@ -149,15 +149,10 @@ class Proxy(TimeStampedModel):
         return f"<Proxy: {self.id}> {self.ip}:{self.port}"
 
 
-class Scrape(TimeStampedModel):
+class Scrape(TaskLogModel):
     sites = models.ManyToManyField(Website, related_name="sites")
     pages = models.ManyToManyField(Page, related_name="pages")
     proxies = models.PositiveSmallIntegerField(_("Proxies scraped"), default=0)
-    error = models.TextField(_("Error message"), blank=True, null=True)
-    is_success = models.BooleanField(_("Success status"), default=False)
-    completed_at = models.DateTimeField(
-        _("Datetime of Completion"), blank=True, null=True
-    )
 
     class Meta:
         indexes = (
@@ -171,3 +166,20 @@ class Scrape(TimeStampedModel):
 
     def __str__(self):
         return f"<Scrape: {self.id}> {self.created_at}"
+
+
+class Check(TaskLogModel):
+    proxies = models.ManyToManyField(Proxy, related_name="proxies")
+
+    class Meta:
+        indexes = (
+            models.Index(fields=["id"]),
+            models.Index(fields=["-id"]),
+            models.Index(fields=["-created_at"]),
+            models.Index(fields=["-completed_at"]),
+            models.Index(fields=["-created_at", "-completed_at"]),
+        )
+        ordering = ("-created_at", "-completed_at")
+
+    def __str__(self):
+        return f"<Check: {self.id}> {self.created_at}"

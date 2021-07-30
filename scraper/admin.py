@@ -71,9 +71,30 @@ class ScrapeAdmin(admin.ModelAdmin):
     list_display = (
         "__str__",
         "proxies",
-        "completed_at",
         "is_success",
-        "error",
+        "completed_at",
+        "created_at",
+        "updated_at",
+        "is_active",
+    )
+    list_display_links = ("__str__",)
+    list_filter = ("is_active", "is_success")
+    search_fields = ("id", "error")
+
+
+@admin.register(models.Check)
+class CheckAdmin(admin.ModelAdmin):
+    model = models.Check
+    date_hierarchy = "created_at"
+    readonly_fields = (
+        "created_at",
+        "updated_at",
+        "completed_at",
+    )
+    list_display = (
+        "__str__",
+        "is_success",
+        "completed_at",
         "created_at",
         "updated_at",
         "is_active",
