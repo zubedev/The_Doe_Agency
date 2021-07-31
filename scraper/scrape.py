@@ -5,8 +5,8 @@ from bs4 import BeautifulSoup
 from django.db.models import QuerySet
 from django.utils import timezone
 
+from scraper import utils
 from scraper.models import Website, Page, Proxy, Scrape
-from scraper.utils import get_sites, get_content, get_tested, save_to_db
 
 logger = getLogger(__name__)
 
@@ -37,11 +37,11 @@ def scrape_page(
     try:
         logger.info(f"{page} Commenced scraping...")
 
-        content = get_content(page)  # page source
+        content = utils.get_content(page)  # page source
         soup = BeautifulSoup(content, "html.parser")  # parse the html content
         proxies = parser(soup)  # list of extracted proxies
-        tested = get_tested(proxies)  # list of tested proxies
-        saved_to_db = save_to_db(page, tested)  # list of saved proxies
+        tested = utils.get_tested(proxies)  # list of tested proxies
+        saved_to_db = utils.save_to_db(page, tested)  # list of saved proxies
 
         logger.info(f"{page} Scrape complete.")
         return saved_to_db
@@ -111,7 +111,7 @@ def scrape(
     obj = Scrape.objects.create()  # record the scrape
 
     if not sites:
-        sites = get_sites()  # is_active=True (default)
+        sites = utils.get_sites()  # is_active=True (default)
         if sites:
             obj.sites.add(*sites)
 

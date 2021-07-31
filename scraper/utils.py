@@ -12,9 +12,7 @@ from django.utils import timezone
 from requests import Response
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options as ChromeOptions
-from selenium.webdriver.firefox.options import Options as FirefoxOptions
 from webdriver_manager.chrome import ChromeDriverManager
-from webdriver_manager.firefox import GeckoDriverManager
 
 from project.settings import TEST_URL
 from scraper.models import Website, Page, Proxy
@@ -43,7 +41,7 @@ def get_sites(is_active=True, **kwargs) -> QuerySet[Website]:
 
 def get_pages(
     site: Website = None, site__code: str = None, is_active=True, **kwargs
-) -> list[Page]:
+) -> QuerySet[Page]:
     """List of active(by default) pages for a given website or website code
     Args:
         site: a related <Website> object
@@ -51,7 +49,7 @@ def get_pages(
         is_active: a boolean active status of page
         kwargs: keyword arguments passed to <Page> objects filter
     Returns:
-        list: A list of pages
+        QuerySet[Page]: A queryset of pages
     Raises:
         ValueError: if neither site or site__code is provided
     """
@@ -106,7 +104,7 @@ def get_page_source(url: str, timeout: int = 10) -> bytes or None:
     return res.content
 
 
-def get_driver(browser: str = "Chrome", headless: bool = True, *args):
+def get_driver(headless: bool = True, *args):
     """Returns a configure selenium web driver"""
     arguments = []
     if headless:
@@ -118,22 +116,12 @@ def get_driver(browser: str = "Chrome", headless: bool = True, *args):
         *args,
     ]
 
-    if browser.lower() == "firefox":
-        options = FirefoxOptions()
-        for a in arguments:
-            options.add_argument(a)
-        driver = webdriver.Firefox(
-            executable_path=GeckoDriverManager().install(), options=options
-        )
-    else:  # Chrome, by default
-        options = ChromeOptions()
-        for a in arguments:
-            options.add_argument(a)
-        driver = webdriver.Chrome(
-            executable_path=ChromeDriverManager().install(), options=options
-        )
-
-    return driver
+    options = ChromeOptions()
+    for a in arguments:
+        options.add_argument(a)
+    return webdriver.Chrome(
+        executable_path=ChromeDriverManager().install(), options=options
+    )
 
 
 def get_js_page_source(url: str):
@@ -241,7 +229,7 @@ def test_ip_port(
     if proxy and not ip and not port:
         ip = proxy.get("ip", None)
         port = proxy.get("port", None)
-        protocol = proxy.get("protocol", None)
+        protocol = proxy.get("protocol", protocol)
     if not ip and not port:
         raise ValueError("Must provide proxy or ip:port")
     if not proxy and ip and port:

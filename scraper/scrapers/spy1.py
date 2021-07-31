@@ -8,7 +8,7 @@ from scraper.utils import slurp
 logger = getLogger(__name__)
 
 
-def parse(soup: BeautifulSoup):
+def parse(soup: BeautifulSoup) -> list[dict]:
     logger.info("Commenced parsing...")
     proxies = []  # list of params for object creation
 

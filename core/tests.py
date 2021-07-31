@@ -1,5 +1,4 @@
 from http import HTTPStatus
-import logging
 from unittest.mock import patch
 
 from django.contrib.admin.models import LogEntry, ADDITION
@@ -10,6 +9,7 @@ from django.test import Client, TestCase
 from django.urls import reverse
 
 from core.models import User
+from utils.decorators import suppress_logs
 
 ADMIN_URL = reverse("admin:index")
 ADMIN_LOGIN_URL = reverse("admin:login")
@@ -34,23 +34,6 @@ def get_super_user(
     username="superuser", email="superuser@email.com", **kwargs
 ) -> User:
     return get_staff_user(username, email, is_superuser=True, **kwargs)
-
-
-def suppress_logs(original_function, loglevel="ERROR"):
-    def new_function(*args, **kwargs):
-        """wrap original_function with suppressed warnings"""
-        # raise logging level to ERROR or loglevel
-        logger = logging.getLogger("django")
-        previous_logging_level = logger.getEffectiveLevel()
-        logger.setLevel(getattr(logging, loglevel.upper()))
-
-        # trigger original function that would throw warning
-        original_function(*args, **kwargs)
-
-        # lower logging level back to previous
-        logger.setLevel(previous_logging_level)
-
-    return new_function
 
 
 class CommandsTestCase(TestCase):

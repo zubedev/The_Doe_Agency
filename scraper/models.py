@@ -70,9 +70,11 @@ class Website(TimeStampedModel):
 
     def get_parser(self):
         module_name = f"scraper.scrapers.{self.code.lower()}"
-        module = import_module(module_name)
-        parser = getattr(module, "parse", None)
-        return parser
+        try:
+            module = import_module(module_name)
+            return getattr(module, "parse", None)
+        except ModuleNotFoundError:
+            return None
 
     # def scrape(self):
     #     return scrape_site(self)
