@@ -1,6 +1,6 @@
 from django.core.management import BaseCommand
 
-from scraper.scrapers.common import scrape
+from scraper.scrape import scrape
 
 
 class Command(BaseCommand):

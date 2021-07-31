@@ -4,7 +4,7 @@ from logging import getLogger
 from bs4 import BeautifulSoup
 
 from scraper.models import Anonymity, Protocol
-from scraper.scrapers import common
+from scraper.utils import slurp
 
 logger = getLogger(__name__)
 
@@ -13,11 +13,11 @@ def parse(soup: BeautifulSoup):
     logger.info("Commenced parsing...")
     proxies = []  # list of params for object creation
 
-    table = common.slurp(soup, kv={"id": "proxylisttable"})
-    # headings = common.slurp(table, "select", "thead > tr > th")
-    rows = common.slurp(table, "select", "tbody > tr")
+    table = slurp(soup, kv={"id": "proxylisttable"})
+    # headings = slurp(table, "select", "thead > tr > th")
+    rows = slurp(table, "select", "tbody > tr")
     for r in rows:
-        cols = common.slurp(r, "select", "td")  # get the columns in each row
+        cols = slurp(r, "select", "td")  # get the columns in each row
         anonymity = [
             a[0]
             for a in Anonymity.as_tuple()

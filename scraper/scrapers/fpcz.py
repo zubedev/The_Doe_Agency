@@ -3,7 +3,7 @@ from logging import getLogger
 from bs4 import BeautifulSoup
 
 from scraper.models import Anonymity, Protocol
-from scraper.scrapers import common
+from scraper.utils import slurp
 
 logger = getLogger(__name__)
 
@@ -12,16 +12,16 @@ def parse(soup: BeautifulSoup):
     logger.info("Commenced parsing...")
     proxies = []  # list of params for object creation
 
-    outer_table = common.slurp(soup, "select", "table")[1]
-    outer_row = common.slurp(outer_table, "select", "tbody > tr")[3]
-    table = common.slurp(outer_row, val="table")
+    outer_table = slurp(soup, "select", "table")[1]
+    outer_row = slurp(outer_table, "select", "tbody > tr")[3]
+    table = slurp(outer_row, val="table")
     # headings = common.slurp(table, "select", "thead > tr > th")
-    rows = common.slurp(table, "select", "tbody > tr")[
+    rows = slurp(table, "select", "tbody > tr")[
         3:-2
     ]  # 4th row to 2nd last row
 
     for r in rows:
-        cols = common.slurp(r, "select", "td")  # get the columns in each row
+        cols = slurp(r, "select", "td")  # get the columns in each row
         if len(cols) <= 1:
             continue  # invalid row, continue to next row
 

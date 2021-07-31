@@ -1,16 +1,16 @@
 from celery import shared_task
 
-from scraper.scrapers.common import scrape as scrape_sites
-from scraper.check import check as check_proxies
+from scraper.common import scrape
+from scraper.check import check
 
 
 @shared_task
-def scrape():
+def scrape_sites():
     """Task: Scrape active websites"""
-    scrape_sites()
+    scrape()
 
 
 @shared_task
-def check():
+def check_proxies():
     """Task: Check all available proxies"""
-    check_proxies()
+    check()

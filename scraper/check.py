@@ -6,15 +6,9 @@ from concurrent.futures import ThreadPoolExecutor
 from django.utils import timezone
 
 from scraper.models import Proxy, Check
-from scraper.scrapers.common import test_ip_port
+from scraper.utils import get_proxies, test_ip_port
 
 logger = getLogger(__name__)
-
-
-def get_proxies(is_active: bool = True, **kwargs: dict):
-    """Returns available active proxies queryset"""
-    params = {"is_active": is_active, **kwargs}
-    return Proxy.objects.filter(**params)
 
 
 def check(**kwargs: dict) -> None:
