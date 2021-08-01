@@ -11,6 +11,7 @@ from selenium.webdriver.chrome.webdriver import WebDriver
 
 from scraper import utils, tasks, check, scrape
 from scraper.models import Website, Page, Proxy, Check, Scrape
+from scraper.scrapers import sslp, spy1, fpls, fpcz
 
 
 class CommandTestCase(TestCase):
@@ -255,3 +256,61 @@ class ScrapeTestCase(TestCase):
         mock_scrape_site.side_effect = Exception
         proxies = scrape.scrape()
         self.assertListEqual(proxies, [])
+
+
+class ScrapersTestCase(TestCase):
+    def test_sslp(self) -> None:
+        soup = BeautifulSoup(sslp.content, "html.parser")
+        proxies = sslp.parse(soup)
+        self.assertDictEqual(
+            proxies[0],
+            {
+                "ip": "127.1.2.3",
+                "port": 12345,
+                "country": "BD",
+                "anonymity": "ANM",
+                "protocol": "HTTP",
+            },
+        )
+
+    def test_spy1(self) -> None:
+        soup = BeautifulSoup(spy1.content, "html.parser")
+        proxies = spy1.parse(soup)
+        self.assertDictEqual(
+            proxies[0],
+            {
+                "ip": "127.1.2.3",
+                "port": 12345,
+                "country": "BD",
+                "anonymity": "ANM",
+                "protocol": "HTTP",
+            },
+        )
+
+    def test_fpls(self) -> None:
+        soup = BeautifulSoup(fpls.content, "html.parser")
+        proxies = fpls.parse(soup)
+        self.assertDictEqual(
+            proxies[0],
+            {
+                "ip": "127.1.2.3",
+                "port": 12345,
+                "country": "BD",
+                "anonymity": "ANM",
+                "protocol": "HTTP",
+            },
+        )
+
+    def test_fpcz(self) -> None:
+        soup = BeautifulSoup(fpcz.content, "html.parser")
+        proxies = fpcz.parse(soup)
+        self.assertDictEqual(
+            proxies[0],
+            {
+                "ip": "127.1.2.3",
+                "port": 12345,
+                "country": "BD",
+                "anonymity": "ANM",
+                "protocol": "HTTP",
+            },
+        )

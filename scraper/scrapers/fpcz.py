@@ -7,6 +7,38 @@ from scraper.utils import slurp
 
 logger = getLogger(__name__)
 
+content = """
+<html>
+    <body>
+        <table>...</table>
+        <table>
+            <tbody>
+            <tr></tr>
+            <tr></tr>
+            <tr></tr>
+            <tr>
+                <table>
+                    <tbody>
+                    <tr></tr>
+                    <tr></tr>
+                    <tr></tr>
+                    <tr>
+                        <td><font>127.1.2.3:12345</font></td>
+                        <td>HTTP Unsecure</td>
+                        <td><font>ANM</font></td>
+                        <td><a href="/path/BD/"</td>
+                    </tr>
+                    <tr></tr>
+                    <tr></tr>
+                    </tbody>
+                </table>
+            </tr>
+            </tbody>
+        </table>
+    </body>
+</html
+"""
+
 
 def parse(soup: BeautifulSoup):
     logger.info("Commenced parsing...")
@@ -44,7 +76,7 @@ def parse(soup: BeautifulSoup):
         proxies.append(
             {
                 "ip": ip_port[0],
-                "port": ip_port[1],
+                "port": int(ip_port[1]),
                 "country": country,
                 "anonymity": anonymity[0]
                 if anonymity

@@ -8,6 +8,26 @@ from scraper.utils import slurp
 
 logger = getLogger(__name__)
 
+content = """
+<html>
+    <body>
+        <table id="proxylisttable">
+            <tbody>
+            <tr>
+                <td>127.1.2.3</td>
+                <td>12345</td>
+                <td>BD</td>
+                <td>???</td>
+                <td>Anonymous</td>
+                <td>???</td>
+                <td>No</td>
+            </tr>
+            </tbody>
+        </table>
+    </body>
+</html
+"""
+
 
 def parse(soup: BeautifulSoup) -> list[dict]:
     logger.info("Commenced parsing...")

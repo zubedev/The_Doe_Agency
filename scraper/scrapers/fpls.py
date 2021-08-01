@@ -7,6 +7,25 @@ from scraper.utils import slurp
 
 logger = getLogger(__name__)
 
+content = """
+<html>
+    <body>
+        <table class="DataGrid">
+            <tbody>
+            <tr></tr>
+            <tr>
+                <td><a href="">127.1.2.3</a></td>
+                <td>12345</td>
+                <td>HTTP</td>
+                <td>Anonymous</td>
+                <td><img src="path/BD.jpg"></td>
+            </tr>
+            </tbody>
+        </table>
+    </body>
+</html
+"""
+
 
 def parse(soup: BeautifulSoup):
     logger.info("Commenced parsing...")
@@ -47,7 +66,7 @@ def parse(soup: BeautifulSoup):
         proxies.append(
             {
                 "ip": ip,
-                "port": port,
+                "port": int(port),
                 "country": country,
                 "anonymity": anonymity,
                 "protocol": protocol[0] if protocol else Protocol.HTTP[0],
