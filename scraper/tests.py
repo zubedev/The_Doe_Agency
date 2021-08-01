@@ -89,22 +89,66 @@ class ScrapeTestCase(TestCase):
         self.assertIsInstance(proxies, QuerySet)
         self.assertIsInstance(proxies.first(), Proxy)
 
-    def test_get_page_source(self) -> None:
+    @mock.patch("scraper.utils.test_ip_port")
+    @mock.patch("scraper.utils.get_proxies")
+    def test_get_random_working_proxy(self, mock_proxies, mock_test_ip_port):
+        p_dict = {
+            "ip": self.proxy.ip,
+            "port": self.proxy.port,
+            "protocol": self.proxy.protocol,
+        }
+
+        mock_proxies.return_value = Proxy.objects.none()
+        proxy = utils.get_random_working_proxy()
+        self.assertIsNone(proxy)
+
+        mock_proxies.return_value = Proxy.objects.filter(pk=self.proxy.pk)
+        mock_test_ip_port.return_value = False, p_dict
+        proxy = utils.get_random_working_proxy()
+        self.assertIsNone(proxy)
+
+        mock_test_ip_port.return_value = True, p_dict
+        proxy = utils.get_random_working_proxy()
+        self.assertEqual(proxy, self.proxy)
+
+        proxy = utils.get_random_working_proxy(output="dict")
+        self.assertDictEqual(proxy, p_dict)
+
+    @mock.patch("scraper.utils.get_random_working_proxy")
+    def test_get_page_source(self, mock_proxy) -> None:
+        mock_proxy.return_value = None
         content = utils.get_page_source(settings.TEST_URL)
         self.assertIsNotNone(content)
-        content = utils.get_page_source(settings.TEST_URL + "/test")
+        content = utils.get_page_source(settings.TEST_URL + "/test", retry=0)
         self.assertIsNone(content)
-        content = utils.get_page_source(self.test_url)
+        content = utils.get_page_source(self.test_url, retry=0)
         self.assertIsNone(content)
 
-    def test_get_driver(self) -> None:
+        mock_proxy.return_value = self.proxy
+        with mock.patch.object(requests, "get") as mock_request:
+            response = Response()
+            response.status_code = 200
+            response._content = b"content"
+            mock_request.return_value = response
+            content = utils.get_page_source(settings.TEST_URL)
+            self.assertIsNotNone(content)
+
+    @mock.patch("scraper.utils.get_random_working_proxy")
+    def test_get_driver(self, mock_proxy) -> None:
+        mock_proxy.return_value = None
         driver = utils.get_driver()
         self.assertIsInstance(driver, WebDriver)
+        driver.quit()
+
+        mock_proxy.return_value = self.proxy
+        driver = utils.get_driver()
+        self.assertIsInstance(driver, WebDriver)
+        driver.quit()
 
     def test_get_js_page_source(self) -> None:
         content = utils.get_js_page_source(settings.TEST_URL)
         self.assertIsNotNone(content)
-        content = utils.get_js_page_source(self.test_url)
+        content = utils.get_js_page_source(self.test_url, retry=0)
         self.assertIsNone(content)
 
     def test_get_content(self) -> None:

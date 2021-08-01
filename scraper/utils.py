@@ -1,4 +1,5 @@
 import concurrent.futures
+import random
 import typing
 from concurrent.futures import ThreadPoolExecutor
 from datetime import timedelta
@@ -15,7 +16,7 @@ from selenium.webdriver.chrome.options import Options as ChromeOptions
 from webdriver_manager.chrome import ChromeDriverManager
 
 from project.settings import TEST_URL
-from scraper.models import Website, Page, Proxy
+from scraper.models import Website, Page, Proxy, Anonymity
 
 logger = getLogger(__name__)
 
@@ -76,7 +77,7 @@ def get_pages(
     return pages
 
 
-def get_proxies(is_active: bool = True, **kwargs: dict) -> QuerySet[Proxy]:
+def get_proxies(is_active: bool = True, **kwargs) -> QuerySet[Proxy]:
     """Returns available active proxies queryset
     Args:
         is_active[bool]: a boolean active status of proxy
@@ -88,20 +89,65 @@ def get_proxies(is_active: bool = True, **kwargs: dict) -> QuerySet[Proxy]:
     return Proxy.objects.filter(**params)
 
 
-def get_page_source(url: str, timeout: int = 10) -> bytes or None:
+def get_random_working_proxy(
+    output: str = "object", **kwargs
+) -> typing.Union[Proxy, dict, None]:
+    """Returns a random working proxy in the form of object or dictionary
+    Args:
+        output[str]: Return type; <Proxy> object or values dictionary
+        kwargs[dict]: extra filter to pass while retrieving proxies
+    Returns:
+        <Proxy> object | values dictionary
+    """
+    proxies = list(
+        get_proxies(
+            anonymity__in=[Anonymity.ANONYMOUS[0], Anonymity.ELITE[0]],
+            **kwargs,
+        )
+    )
+    if not proxies:
+        return None
+
+    random.shuffle(proxies)
+    for proxy in proxies:
+        status, p_dict = test_ip_port(
+            ip=proxy.ip, port=proxy.port, protocol=proxy.protocol, timeout=5
+        )
+        if status:
+            if "dict" in output:
+                return p_dict
+            else:
+                return proxy
+    return None  # no working proxies fallback
+
+
+def get_page_source(
+    url: str, timeout: int = 10, retry: int = 3
+) -> bytes or None:
     """Returns non JS rendered page source code"""
+    proxy = get_random_working_proxy()
+    proxy_param = None
+    if proxy:
+        proxy_param = {
+            proxy.protocol.lower(): f"http://{proxy.ip}:{proxy.port}"
+        }
+
+    content = None
     try:  # catch requests exceptions
-        res: Response = requests.get(url, timeout=timeout)
-        if not res.ok:  # 4xx status
+        res: Response = requests.get(url, proxies=proxy_param, timeout=timeout)
+        if res.ok:  # 2xx/3xx status
+            content = res.content
+        else:  # 4xx/5xx status
             logger.info(
                 f"<{url}> Request failed, status_code={res.status_code}"
             )
-            return
     except Exception as e:
         logger.error(e)
         logger.info(f"<{url}> Failed to get page source")
-        return
-    return res.content
+
+    if not content and retry:
+        return get_page_source(url, timeout, retry - 1)
+    return content
 
 
 def get_driver(headless: bool = True, *args):
@@ -112,9 +158,16 @@ def get_driver(headless: bool = True, *args):
     arguments += [
         "--no-sandbox",
         "--disable-dev-shm-usage",
+        "--ignore-certificate-errors",
+        "--window-size=1920x1080",
         "--incognito",
         *args,
     ]
+
+    proxy = get_random_working_proxy()
+    proxy = f"http={proxy.ip}:{proxy.port}" if proxy else None
+    if proxy:
+        arguments.append(f"--proxy-server={proxy}")
 
     options = ChromeOptions()
     for a in arguments:
@@ -124,8 +177,9 @@ def get_driver(headless: bool = True, *args):
     )
 
 
-def get_js_page_source(url: str):
+def get_js_page_source(url: str, retry: int = 3):
     """Returns JS rendered page source code"""
+    content = None
     try:  # catch requests exceptions
         driver = get_driver()
         driver.get(url)
@@ -134,7 +188,8 @@ def get_js_page_source(url: str):
     except Exception as e:
         logger.error(e)
         logger.info(f"<{url}> Failed to get page source")
-        return
+    if not content and retry:
+        return get_js_page_source(url, retry - 1)
     return content
 
 
