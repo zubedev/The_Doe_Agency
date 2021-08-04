@@ -1,0 +1,3 @@
+[bandit]
+# B311: random; Standard pseudo-random generators are not suitable for security/cryptographic purposes.
+skips: B311

@@ -15,7 +15,8 @@ from selenium import webdriver
 from selenium.webdriver.chrome.options import Options as ChromeOptions
 from webdriver_manager.chrome import ChromeDriverManager
 
-from project.settings import TEST_URL
+from project.test_urls import TEST_URLS
+from project.user_agents import USER_AGENTS
 from scraper.models import Website, Page, Proxy, Anonymity
 
 logger = getLogger(__name__)
@@ -111,7 +112,7 @@ def get_random_working_proxy(
     random.shuffle(proxies)
     for proxy in proxies:
         status, p_dict = test_ip_port(
-            ip=proxy.ip, port=proxy.port, protocol=proxy.protocol, timeout=5
+            ip=proxy.ip, port=proxy.port, protocol=proxy.protocol
         )
         if status:
             if "dict" in output:
@@ -122,19 +123,23 @@ def get_random_working_proxy(
 
 
 def get_page_source(
-    url: str, timeout: int = 10, retry: int = 3
+    url: str, timeout: int = 30, retry: int = 3, use_proxy: bool = False
 ) -> bytes or None:
     """Returns non JS rendered page source code"""
-    proxy = get_random_working_proxy()
     proxy_param = None
-    if proxy:
-        proxy_param = {
-            proxy.protocol.lower(): f"http://{proxy.ip}:{proxy.port}"
-        }
+    if use_proxy:
+        proxy = get_random_working_proxy()
+        if proxy:
+            proxy_param = {
+                proxy.protocol.lower(): f"http://{proxy.ip}:{proxy.port}"
+            }
 
     content = None
     try:  # catch requests exceptions
-        res: Response = requests.get(url, proxies=proxy_param, timeout=timeout)
+        headers = {"User-Agent": random.choice(USER_AGENTS)}
+        res: Response = requests.get(
+            url, headers=headers, timeout=timeout, proxies=proxy_param
+        )
         if res.ok:  # 2xx/3xx status
             content = res.content
         else:  # 4xx/5xx status
@@ -147,27 +152,36 @@ def get_page_source(
 
     if not content and retry:
         return get_page_source(url, timeout, retry - 1)
+    if not content and not retry and use_proxy:
+        return get_page_source(url, timeout, 0, False)  # dont use proxy
     return content
 
 
-def get_driver(headless: bool = True, *args):
+def get_driver(headless: bool = True, add_proxy: bool = False, *args):
     """Returns a configure selenium web driver"""
     arguments = []
     if headless:
         arguments.append("--headless")
+
     arguments += [
         "--no-sandbox",
         "--disable-dev-shm-usage",
         "--ignore-certificate-errors",
         "--window-size=1920x1080",
+        f"--user-agent={random.choice(USER_AGENTS)}",
         "--incognito",
         *args,
     ]
 
-    proxy = get_random_working_proxy()
-    proxy = f"http={proxy.ip}:{proxy.port}" if proxy else None
-    if proxy:
-        arguments.append(f"--proxy-server={proxy}")
+    if add_proxy:
+        proxy = get_random_working_proxy()
+        proxy = (
+            f"{proxy.protocol.lower()}://{proxy.ip}:{proxy.port}"
+            if proxy
+            else None
+        )
+        if proxy:
+            arguments.append(f"--proxy-server={proxy}")
 
     options = ChromeOptions()
     for a in arguments:
@@ -177,11 +191,11 @@ def get_driver(headless: bool = True, *args):
     )
 
 
-def get_js_page_source(url: str, retry: int = 3):
+def get_js_page_source(url: str, retry: int = 3, use_proxy: bool = False):
     """Returns JS rendered page source code"""
     content = None
     try:  # catch requests exceptions
-        driver = get_driver()
+        driver = get_driver(add_proxy=use_proxy)
         driver.get(url)
         content = driver.page_source
         driver.quit()
@@ -190,6 +204,8 @@ def get_js_page_source(url: str, retry: int = 3):
         logger.info(f"<{url}> Failed to get page source")
     if not content and retry:
         return get_js_page_source(url, retry - 1)
+    if not content and not retry and use_proxy:
+        return get_js_page_source(url, 0, False)  # dont use proxy
     return content
 
 
@@ -265,8 +281,10 @@ def test_ip_port(
     ip: str = None,
     port: typing.Union[int, str] = None,
     protocol: str = "http",
-    test_url: str = TEST_URL,
-    timeout: int = 10,
+    test_urls: typing.Union[tuple, list] = tuple(
+        random.choices(TEST_URLS, k=3)
+    ),
+    timeout: int = 30,
 ) -> tuple[bool, dict]:
     """Tests for a working proxy
     Args:
@@ -274,8 +292,8 @@ def test_ip_port(
         ip [str]: If proxy[dict] not given, must provide the ip address
         port [str|int]: Must provide a port paired with ip address
         protocol [str]: Proxy protocol; default=http
-        test_url[str]: URL to test the proxy against; default=settings.TEST_URL
-        timeout [int]: Connection timeout in seconds; default=10
+        test_urls[tuple|list]: URLs to test the proxy against
+        timeout [int]: Connection timeout in seconds; default=30
     Returns:
         tuple[bool, dict]: Status of Proxy, Proxy details
     Raises:
@@ -293,22 +311,29 @@ def test_ip_port(
     logger.debug(f"Testing proxy ip: {ip}, port: {port}, protocol: {protocol}")
     params = {protocol.lower(): f"http://{ip}:{port}"}
 
-    try:  # test the proxy
-        with requests_cache.disabled():
-            res = requests.get(test_url, proxies=params, timeout=timeout)
-        return res.ok, proxy
-    except Exception as e:
-        logger.error(f"<{params}> {e}")
+    count = 0
+    for url in test_urls:
+        try:  # test the proxy
+            with requests_cache.disabled():
+                headers = {"User-Agent": random.choice(USER_AGENTS)}
+                res = requests.get(
+                    url, headers=headers, timeout=timeout, proxies=params
+                )
+            if res.ok:
+                count += 1
+        except Exception as e:
+            logger.error(f"<{params}> {e}")
+
+    if count >= len(test_urls) - 1:
+        return True, proxy
+    else:
         return False, proxy
 
 
-def get_tested(
-    proxies: list[dict], test_url: str = TEST_URL, timeout: int = 10
-) -> list[dict]:
+def get_tested(proxies: list[dict], timeout: int = 30) -> list[dict]:
     """Test extracted proxies against a TEST_URL
     Args:
         proxies: List of proxies in `dict` form containing `ip` and `port`, etc
-        test_url: URL to test proxies against, default set in settings.py
         timeout: seconds to wait before timing out the testing request
     Returns:
         list: A list of tested proxies
@@ -322,7 +347,7 @@ def get_tested(
         for p in proxies:
             if Proxy.objects.filter(ip=p["ip"], port=p["port"]).exists():
                 continue  # skip testing existing proxy, will bulk test in bg
-            kwargs = {"proxy": p, "test_url": test_url, "timeout": timeout}
+            kwargs = {"proxy": p, "timeout": timeout}
             futures.append(executor.submit(test_ip_port, **kwargs))
 
         for future in concurrent.futures.as_completed(futures):

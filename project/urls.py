@@ -32,10 +32,14 @@ urlpatterns = [
         name="token_obtain_pair",
     ),
     path(
-        "token/refresh/", jwt.TokenRefreshView.as_view(), name="token_refresh"
+        "token/refresh/",
+        jwt.TokenRefreshView.as_view(),
+        name="token_refresh",
     ),
     # core urls ---------------------------------------------------------------
-    path("", include("core.urls")),
+    path("core/", include("core.urls")),
+    # scraper urls ------------------------------------------------------------
+    path("api/", include("scraper.urls")),
 ]
 
 # development environment urls ------------------------------------------------

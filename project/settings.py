@@ -125,7 +125,7 @@ TEMPLATES = [
 
 AUTH_USER_MODEL = "core.User"
 
-TEST_URL = "https://httpbin.org/ip"
+TEST_URL = "http://httpbin.zube.xyz/ip"
 
 WSGI_APPLICATION = "project.wsgi.application"
 
@@ -245,7 +245,7 @@ SIMPLE_JWT = {
     "VERIFYING_KEY": None,
     "AUDIENCE": None,
     "ISSUER": None,
-    "AUTH_HEADER_TYPES": ("JWT",),
+    "AUTH_HEADER_TYPES": ("Bearer",),
     "AUTH_HEADER_NAME": "HTTP_AUTHORIZATION",
     "USER_ID_FIELD": "id",
     "USER_ID_CLAIM": "user_id",
