@@ -3,6 +3,8 @@ from rest_framework import routers
 
 from core import views
 
+app_name = "core"
+
 router = routers.DefaultRouter()
 router.register("groups", views.GroupViewSet)
 router.register("users", views.UserViewSet)

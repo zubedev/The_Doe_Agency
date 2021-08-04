@@ -37,9 +37,9 @@ urlpatterns = [
         name="token_refresh",
     ),
     # core urls ---------------------------------------------------------------
-    path("core/", include("core.urls")),
+    path("core/", include("core.urls", namespace="core")),
     # scraper urls ------------------------------------------------------------
-    path("api/", include("scraper.urls")),
+    path("api/", include("scraper.urls", namespace="scraper")),
 ]
 
 # development environment urls ------------------------------------------------

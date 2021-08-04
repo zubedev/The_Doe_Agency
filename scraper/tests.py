@@ -1,17 +1,23 @@
+from http import HTTPStatus
 from unittest import mock
 
 import requests
 from bs4 import BeautifulSoup
 from django.conf import settings
+from django.contrib.auth import get_user_model
 from django.core.management import call_command
 from django.db.models import QuerySet
-from django.test import TestCase
+from django.test import Client, TestCase
+from django.urls import reverse
 from requests import Response
 from selenium.webdriver.chrome.webdriver import WebDriver
 
+import scraper.views
 from scraper import utils, tasks, check, scrape
 from scraper.models import Website, Page, Proxy, Check, Scrape
 from scraper.scrapers import sslp, spy1, fpls, fpcz
+
+USER_MODEL = get_user_model()
 
 
 class CommandTestCase(TestCase):
@@ -358,3 +364,48 @@ class ScrapersTestCase(TestCase):
                 "protocol": "HTTP",
             },
         )
+
+
+class APIViewTests(TestCase):
+    fixtures = [
+        "group.json",
+        "user.json",
+        "crontabschedule.json",
+        "intervalschedule.json",
+        "website.json",
+        "page.json",
+    ]
+    scrape_sites_url = reverse("scraper:scrape_sites")
+    check_proxies_url = reverse("scraper:check_proxies")
+
+    def setUp(self) -> None:
+        self.testuser = USER_MODEL.objects.get(username="testuser")
+        self.client = Client()
+
+    def test_anonymous_view(self) -> None:
+        self.client.logout()  # sanity check
+        response = self.client.post(self.scrape_sites_url)
+        self.assertEqual(response.status_code, HTTPStatus.UNAUTHORIZED)  # 401
+        response = self.client.post(self.check_proxies_url)
+        self.assertEqual(response.status_code, HTTPStatus.UNAUTHORIZED)  # 401
+
+    def test_authenticated_view(self) -> None:
+        self.client.force_login(self.testuser)
+        task = mock.Mock()
+        task.id = "task_id"
+        task.status = "PENDING"
+
+        with mock.patch.object(
+            scraper.tasks.scrape_sites, "apply_async"
+        ) as mock_scrape:
+            mock_scrape.return_value = task
+            response = self.client.post(self.scrape_sites_url)
+            self.assertEqual(response.status_code, HTTPStatus.OK)  # 200
+            self.assertTrue(mock_scrape.called)  # called once
+        with mock.patch.object(
+            scraper.tasks.check_proxies, "apply_async"
+        ) as mock_check:
+            mock_check.return_value = task
+            response = self.client.post(self.check_proxies_url)
+            self.assertEqual(response.status_code, HTTPStatus.OK)  # 200
+            self.assertTrue(mock_check.called)  # called once
