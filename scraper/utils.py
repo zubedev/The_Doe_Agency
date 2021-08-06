@@ -91,11 +91,12 @@ def get_proxies(is_active: bool = True, **kwargs) -> QuerySet[Proxy]:
 
 
 def get_random_working_proxy(
-    output: str = "object", **kwargs
+    output: str = "object", test_urls: list or tuple = None, **kwargs
 ) -> typing.Union[Proxy, dict, None]:
     """Returns a random working proxy in the form of object or dictionary
     Args:
         output[str]: Return type; <Proxy> object or values dictionary
+        test_url[str]: URL to check the proxy against
         kwargs[dict]: extra filter to pass while retrieving proxies
     Returns:
         <Proxy> object | values dictionary
@@ -111,9 +112,10 @@ def get_random_working_proxy(
 
     random.shuffle(proxies)
     for proxy in proxies:
-        status, p_dict = test_ip_port(
-            ip=proxy.ip, port=proxy.port, protocol=proxy.protocol
-        )
+        kw = {"ip": proxy.ip, "port": proxy.port, "protocol": proxy.protocol}
+        if test_urls:
+            kw.update({"test_urls": test_urls})
+        status, p_dict = test_ip_port(**kw)
         if status:
             if "dict" in output:
                 return p_dict

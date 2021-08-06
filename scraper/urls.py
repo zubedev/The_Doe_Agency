@@ -17,4 +17,5 @@ urlpatterns = [
     path(
         "check_proxies/", views.CheckProxiesAPI.as_view(), name="check_proxies"
     ),
+    path("get_proxy/", views.GetProxyAPI.as_view(), name="get_proxy"),
 ]

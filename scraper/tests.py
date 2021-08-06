@@ -117,7 +117,7 @@ class ScrapeTestCase(TestCase):
         proxy = utils.get_random_working_proxy()
         self.assertEqual(proxy, self.proxy)
 
-        proxy = utils.get_random_working_proxy(output="dict")
+        proxy = utils.get_random_working_proxy("dict", ("https://google.com",))
         self.assertDictEqual(proxy, p_dict)
 
     @mock.patch("scraper.utils.get_random_working_proxy")
@@ -136,7 +136,7 @@ class ScrapeTestCase(TestCase):
             response.status_code = 200
             response._content = b"content"
             mock_request.return_value = response
-            content = utils.get_page_source(settings.TEST_URL)
+            content = utils.get_page_source(settings.TEST_URL, use_proxy=True)
             self.assertIsNotNone(content)
 
     @mock.patch("scraper.utils.get_random_working_proxy")
@@ -147,14 +147,14 @@ class ScrapeTestCase(TestCase):
         driver.quit()
 
         mock_proxy.return_value = self.proxy
-        driver = utils.get_driver()
+        driver = utils.get_driver(add_proxy=True)
         self.assertIsInstance(driver, WebDriver)
         driver.quit()
 
     def test_get_js_page_source(self) -> None:
         content = utils.get_js_page_source(settings.TEST_URL)
         self.assertIsNotNone(content)
-        content = utils.get_js_page_source(self.test_url, retry=0)
+        content = utils.get_js_page_source(self.test_url, 0, True)
         self.assertIsNone(content)
 
     def test_get_content(self) -> None:
@@ -409,3 +409,32 @@ class APIViewTests(TestCase):
             response = self.client.post(self.check_proxies_url)
             self.assertEqual(response.status_code, HTTPStatus.OK)  # 200
             self.assertTrue(mock_check.called)  # called once
+
+    @mock.patch.object(scraper.views, "get_random_working_proxy")
+    def test_get_proxy_api(self, mock_result) -> None:
+        self.client.force_login(self.testuser)
+        get_proxy_url = reverse("scraper:get_proxy")
+
+        # get method
+        mock_result.return_value = None
+        res = self.client.get(get_proxy_url)
+        self.assertEqual(res.status_code, HTTPStatus.NO_CONTENT)
+        mock_result.return_value = {"ip": "127.1.2.3", "port": 45678}
+        res = self.client.get(get_proxy_url)
+        self.assertEqual(res.status_code, HTTPStatus.OK)
+        self.assertIn("result", res.json())
+
+        # post method
+        res = self.client.post(get_proxy_url)
+        self.assertEqual(res.status_code, HTTPStatus.BAD_REQUEST)  # 400
+        mock_result.return_value = None
+        res = self.client.post(
+            get_proxy_url, {"test_urls": "https://google.com/"}
+        )
+        self.assertEqual(res.status_code, HTTPStatus.NO_CONTENT)
+        mock_result.return_value = {"ip": "127.1.2.3", "port": 45678}
+        res = self.client.post(
+            get_proxy_url, {"test_urls": "https://google.com/"}
+        )
+        self.assertEqual(res.status_code, HTTPStatus.OK)
+        self.assertIn("result", res.json())

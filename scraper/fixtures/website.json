@@ -41,7 +41,7 @@
   "fields": {
     "created_at": "2021-07-25T08:05:16.686Z",
     "updated_at": "2021-07-25T08:06:25.250Z",
-    "is_active": true,
+    "is_active": false,
     "name": "FreeProxyLists",
     "code": "FPLS",
     "url": "http://www.freeproxylists.net"
