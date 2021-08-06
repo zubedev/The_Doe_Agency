@@ -34,7 +34,7 @@ def get_sites(is_active=True, **kwargs) -> QuerySet[Website]:
     logger.debug(f"is_active: {is_active}, kwargs: {kwargs}")
 
     params = {"is_active": is_active, **kwargs}
-    sites = Website.objects.filter(**params)
+    sites = Website.objects.prefetch_related("pages").filter(**params)
 
     logger.info("Returning website queryset")
     logger.debug(f"Sites: {sites}")

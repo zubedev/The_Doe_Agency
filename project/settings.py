@@ -20,15 +20,16 @@ from .logging import CONFIG as LOG_CONFIG
 
 ENVIRON = config("ENVIRON", default="prod")
 
-sentry_sdk.init(
-    dsn="https://ad9a9f987fa949a899c3b890ef4cd112"
-    "@o354850.ingest.sentry.io/5868398",
-    integrations=[DjangoIntegration()],
-    environment=ENVIRON,
-    traces_sample_rate=1.0,
-    send_default_pii=True,
-    release="tda@0.1.0",  # change in poetry as well
-)
+if ENVIRON == "prod":
+    sentry_sdk.init(
+        dsn="https://ad9a9f987fa949a899c3b890ef4cd112"
+        "@o354850.ingest.sentry.io/5868398",
+        integrations=[DjangoIntegration()],
+        environment=ENVIRON,
+        traces_sample_rate=1.0,
+        send_default_pii=True,
+        release="tda@0.1.0",  # change in poetry as well
+    )
 
 LOGGING = LOG_CONFIG
 

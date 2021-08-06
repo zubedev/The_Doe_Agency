@@ -9,3 +9,12 @@
 [![CodeQL](https://github.com/ziibii88/The_Doe_Agency/actions/workflows/codeql-analysis.yml/badge.svg)](https://github.com/ziibii88/The_Doe_Agency/actions/workflows/codeql-analysis.yml)
 
 An agency by John and Jane Doe providing proxy lists to the unknowns
+
+## How to setup development environment
+#### (requires Docker to be already installed)
+- Step 1 --- Copy `.dev-envs` from `envs` folder to project root (beside `Dockerfile`), save as `.env`
+- Step 2 --- Edit `.env` file and add a random `SECRET_KEY`
+- Step 3 --- Build the containers `docker-compose build`
+- Step 4 --- Run the containers `docker-compose up`
+- Step 5 --- You can access api endpoints at `127.0.0.1:8000/api/`
+- Step 6 --- You can stop and remove containers by doing `docker-compose down`
